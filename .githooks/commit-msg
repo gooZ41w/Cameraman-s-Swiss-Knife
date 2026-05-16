@@ -1,0 +1,13 @@
+#!/bin/sh
+# commit-msg hook: enforce simple Conventional Commit pattern
+MSG_FILE=$1
+MSG=$(cat "$MSG_FILE")
+
+if ! echo "$MSG" | grep -Eq "^(feat|fix|docs|chore|refactor|test|perf)(\(.+\))?: .+"; then
+  echo "\n[commit-msg] Commit message does not follow Conventional Commits pattern." >&2
+  echo "Expected: type(scope?): subject" >&2
+  echo "Example: feat(dof): add hyperfocal calculation" >&2
+  exit 1
+fi
+
+exit 0

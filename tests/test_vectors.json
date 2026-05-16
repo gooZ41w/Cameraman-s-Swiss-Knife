@@ -1,0 +1,87 @@
+{
+  "exposure": [
+    {
+      "id": "exp-nd1000-sample",
+      "N": 8,
+      "t": 0.004,
+      "S": 100,
+      "ND": 1000,
+      "expect_t_target": 4.0
+    }
+  ],
+  "dof": [
+    {
+      "id": "dof-24mm-night",
+      "f_mm": 24,
+      "N": 2.8,
+      "s_mm": 10000,
+      "c_mm": 0.029,
+      "expect_H_mm": 7117.6
+    },
+    {
+      "id": "dof-50mm-f8",
+      "f_mm": 50,
+      "N": 8,
+      "s_mm": 5000,
+      "c_mm": 0.029,
+      "expect_H_mm_approx": 11700,
+      "note": "Larger focal length yields larger hyperfocal distance"
+    },
+    {
+      "id": "dof-far-boundary-infinity",
+      "f_mm": 24,
+      "N": 2.8,
+      "s_mm": 20000,
+      "c_mm": 0.029,
+      "expect_D_f_mm": "Infinity",
+      "note": "When focus distance >> hyperfocal, far boundary is infinite"
+    }
+  ],
+  "temperature": [
+    {
+      "id": "temp-2000",
+      "K": 2000,
+      "expect_rgb": [255, 138, 18]
+    },
+    {
+      "id": "temp-3000",
+      "K": 3000,
+      "expect_rgb": [255, 179, 107]
+    },
+    {
+      "id": "temp-4000",
+      "K": 4000,
+      "expect_rgb": [255, 199, 145]
+    },
+    {
+      "id": "temp-5000",
+      "K": 5000,
+      "expect_rgb": [255, 222, 189]
+    },
+    {
+      "id": "temp-6500",
+      "K": 6500,
+      "expect_rgb": [255, 249, 253]
+    },
+    {
+      "id": "temp-8000",
+      "K": 8000,
+      "expect_rgb": [230, 238, 255]
+    },
+    {
+      "id": "temp-10000",
+      "K": 10000,
+      "expect_rgb": [204, 219, 255]
+    },
+    {
+      "id": "temp-6512-precise",
+      "K": 6512,
+      "expect_rgb": [255, 249, 252]
+    },
+    {
+      "id": "temp-2755-precise",
+      "K": 2755,
+      "expect_rgb": [255, 157, 65]
+    }
+  ]
+}
