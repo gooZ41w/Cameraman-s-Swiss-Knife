@@ -5,6 +5,7 @@ import { useExposureStore } from '../../stores/exposureStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { ND_PRESETS } from '../../domain/exposure'
 import { useHoldAccelerator } from '../../utils/useHoldAccelerator'
+import { useDragSnap } from '../../utils/useDragSnap'
 
 // presentation formatting helpers in ../formatters/exposureFormat
 
@@ -141,6 +142,7 @@ export function ExposureScreen() {
 
   const ndHoldPrev = useHoldAccelerator(ndPrev)
   const ndHoldNext = useHoldAccelerator(ndNext)
+  const ndDrag = useDragSnap(ndPrev, ndNext)
 
   // base shutter switch helpers
   const findShutterIndex = () => shutterOptions.findIndex((o) => Math.abs(o.value - shutterSeconds) < 0.0001)
@@ -158,6 +160,7 @@ export function ExposureScreen() {
 
   const shutterHoldPrev = useHoldAccelerator(shutterPrev)
   const shutterHoldNext = useHoldAccelerator(shutterNext)
+  const shutterDrag = useDragSnap(shutterPrev, shutterNext)
 
   // compensation switch helpers
   const findCompIndex = () => compensationOptions.findIndex((v) => Math.abs(v - compensationEv) < 0.001)
@@ -174,6 +177,7 @@ export function ExposureScreen() {
 
   const compHoldPrev = useHoldAccelerator(compPrev)
   const compHoldNext = useHoldAccelerator(compNext)
+  const compDrag = useDragSnap(compPrev, compNext)
 
   return (
     <section className="container" data-testid="exposure-page">
@@ -186,7 +190,11 @@ export function ExposureScreen() {
       <div className="grid-1">
         <div className="label-block">
           滤镜档位
-          <div className="switch-inline switch-inline-stack">
+          <div className="switch-inline switch-inline-stack"
+            onPointerDown={ndDrag.onPointerDown}
+            onPointerMove={ndDrag.onPointerMove}
+            onPointerUp={ndDrag.onPointerUp}
+          >
             <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="nd-switch-prev" className="btn" onClick={ndPrev} aria-label="prev" onMouseDown={() => ndHoldPrev.start()} onMouseUp={() => ndHoldPrev.stop()} onMouseLeave={() => ndHoldPrev.stop()} onTouchStart={() => ndHoldPrev.start()} onTouchEnd={() => ndHoldPrev.stop()}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
@@ -206,7 +214,11 @@ export function ExposureScreen() {
 
         <div className="label-block">
           <div>快门</div>
-          <div className="switch-inline">
+          <div className="switch-inline"
+            onPointerDown={shutterDrag.onPointerDown}
+            onPointerMove={shutterDrag.onPointerMove}
+            onPointerUp={shutterDrag.onPointerUp}
+          >
             <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="base-shutter-prev" className="btn" onClick={shutterPrev} onMouseDown={() => shutterHoldPrev.start()} onMouseUp={() => shutterHoldPrev.stop()} onMouseLeave={() => shutterHoldPrev.stop()} onTouchStart={() => shutterHoldPrev.start()} onTouchEnd={() => shutterHoldPrev.stop()}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
@@ -221,7 +233,11 @@ export function ExposureScreen() {
 
         <div className="label-block">
           曝光补偿
-          <div className="switch-inline">
+          <div className="switch-inline"
+            onPointerDown={compDrag.onPointerDown}
+            onPointerMove={compDrag.onPointerMove}
+            onPointerUp={compDrag.onPointerUp}
+          >
             <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="comp-prev" className="btn" onClick={compPrev} onMouseDown={() => compHoldPrev.start()} onMouseUp={() => compHoldPrev.stop()} onMouseLeave={() => compHoldPrev.stop()} onTouchStart={() => compHoldPrev.start()} onTouchEnd={() => compHoldPrev.stop()}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>

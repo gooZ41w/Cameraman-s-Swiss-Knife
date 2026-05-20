@@ -85,3 +85,6 @@
 .swipe-fade { position:absolute; top:0; bottom:0; width:48px; pointer-events:none; z-index:2; }
 .swipe-fade-left { left:0; background: linear-gradient(90deg, var(--bg-0), rgba(0,0,0,0)); }
 .swipe-fade-right { right:0; background: linear-gradient(270deg, var(--bg-0), rgba(0,0,0,0)); }
+
+.switch-inline { touch-action: pan-y; user-select: none; }
+.switch-inline.dragging { cursor:grabbing; }
