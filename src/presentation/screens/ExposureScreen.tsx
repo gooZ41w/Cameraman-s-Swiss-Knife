@@ -6,6 +6,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import { ND_PRESETS } from '../../domain/exposure'
 import { useHoldAccelerator } from '../../utils/useHoldAccelerator'
 import { useDragSnap } from '../../utils/useDragSnap'
+import { useState } from 'react'
 
 // presentation formatting helpers in ../formatters/exposureFormat
 
@@ -142,7 +143,8 @@ export function ExposureScreen() {
 
   const ndHoldPrev = useHoldAccelerator(ndPrev)
   const ndHoldNext = useHoldAccelerator(ndNext)
-  const ndDrag = useDragSnap(ndPrev, ndNext)
+  const [ndOffset, setNdOffset] = useState(0)
+  const ndDrag = useDragSnap(ndPrev, ndNext, { onMove: (dx) => setNdOffset(dx) })
 
   // base shutter switch helpers
   const findShutterIndex = () => shutterOptions.findIndex((o) => Math.abs(o.value - shutterSeconds) < 0.0001)
@@ -160,7 +162,8 @@ export function ExposureScreen() {
 
   const shutterHoldPrev = useHoldAccelerator(shutterPrev)
   const shutterHoldNext = useHoldAccelerator(shutterNext)
-  const shutterDrag = useDragSnap(shutterPrev, shutterNext)
+  const [shutterOffset, setShutterOffset] = useState(0)
+  const shutterDrag = useDragSnap(shutterPrev, shutterNext, { onMove: (dx) => setShutterOffset(dx) })
 
   // compensation switch helpers
   const findCompIndex = () => compensationOptions.findIndex((v) => Math.abs(v - compensationEv) < 0.001)
@@ -177,7 +180,8 @@ export function ExposureScreen() {
 
   const compHoldPrev = useHoldAccelerator(compPrev)
   const compHoldNext = useHoldAccelerator(compNext)
-  const compDrag = useDragSnap(compPrev, compNext)
+  const [compOffset, setCompOffset] = useState(0)
+  const compDrag = useDragSnap(compPrev, compNext, { onMove: (dx) => setCompOffset(dx) })
 
   return (
     <section className="container" data-testid="exposure-page">
@@ -198,7 +202,7 @@ export function ExposureScreen() {
             <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="nd-switch-prev" className="btn" onClick={ndPrev} aria-label="prev" onMouseDown={() => ndHoldPrev.start()} onMouseUp={() => ndHoldPrev.stop()} onMouseLeave={() => ndHoldPrev.stop()} onTouchStart={() => ndHoldPrev.start()} onTouchEnd={() => ndHoldPrev.stop()}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
-            <div data-testid="nd-switch-value" className="switch-value switch-value-stack">
+            <div data-testid="nd-switch-value" className="switch-value switch-value-stack" style={{ transform: `translateX(${ndOffset}px)`, transition: ndOffset === 0 ? 'transform 180ms ease' : 'none' }}>
               <span className="switch-main-value">{ND_PRESETS[ndPreset]?.label ?? ndPreset}</span>
               {showNdStops && ndPreset !== 'custom' && (
                 <span data-testid="nd-selected-stops" className="switch-subvalue">{ndSelectedStopsLabel}</span>
@@ -222,7 +226,7 @@ export function ExposureScreen() {
             <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="base-shutter-prev" className="btn" onClick={shutterPrev} onMouseDown={() => shutterHoldPrev.start()} onMouseUp={() => shutterHoldPrev.stop()} onMouseLeave={() => shutterHoldPrev.stop()} onTouchStart={() => shutterHoldPrev.start()} onTouchEnd={() => shutterHoldPrev.stop()}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
-            <div data-testid="base-shutter-value" className="switch-value">{currentShutterLabel}</div>
+            <div data-testid="base-shutter-value" className="switch-value" style={{ transform: `translateX(${shutterOffset}px)`, transition: shutterOffset === 0 ? 'transform 180ms ease' : 'none' }}>{currentShutterLabel}</div>
             <div className="selector-swipe-hint right" aria-hidden>▶</div>
             <button data-testid="base-shutter-next" className="btn" onClick={shutterNext} onMouseDown={() => shutterHoldNext.start()} onMouseUp={() => shutterHoldNext.stop()} onMouseLeave={() => shutterHoldNext.stop()} onTouchStart={() => shutterHoldNext.start()} onTouchEnd={() => shutterHoldNext.stop()}>▶</button>
             <div className="swipe-fade swipe-fade-right" aria-hidden />
@@ -241,7 +245,7 @@ export function ExposureScreen() {
             <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="comp-prev" className="btn" onClick={compPrev} onMouseDown={() => compHoldPrev.start()} onMouseUp={() => compHoldPrev.stop()} onMouseLeave={() => compHoldPrev.stop()} onTouchStart={() => compHoldPrev.start()} onTouchEnd={() => compHoldPrev.stop()}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
-            <div data-testid="comp-value" className="switch-value">{compensationEv > 0 ? `+${compensationEv} EV` : `${compensationEv} EV`}</div>
+            <div data-testid="comp-value" className="switch-value" style={{ transform: `translateX(${compOffset}px)`, transition: compOffset === 0 ? 'transform 180ms ease' : 'none' }}>{compensationEv > 0 ? `+${compensationEv} EV` : `${compensationEv} EV`}</div>
             <div className="selector-swipe-hint right" aria-hidden>▶</div>
             <button data-testid="comp-next" className="btn" onClick={compNext} onMouseDown={() => compHoldNext.start()} onMouseUp={() => compHoldNext.stop()} onMouseLeave={() => compHoldNext.stop()} onTouchStart={() => compHoldNext.start()} onTouchEnd={() => compHoldNext.stop()}>▶</button>
             <div className="swipe-fade swipe-fade-right" aria-hidden />
