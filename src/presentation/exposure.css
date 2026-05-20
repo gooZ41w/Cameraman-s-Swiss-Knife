@@ -1,0 +1,87 @@
+./* Exposure screen specific styles (dark-first, with day theme support) */
+.exposure-root { width: 100%; max-width: 420px; margin: 0 auto; padding: 14px 12px; -webkit-tap-highlight-color: transparent; }
+
+/* Design tokens (dark theme defaults). Use CSS variables in components. */
+:root {
+  --bg-0: #0B0D0F;
+  --surface-1: #111315;
+  --surface-2: #16191C;
+  --line-1: rgba(255,255,255,0.06);
+  --line-2: rgba(255,255,255,0.04);
+  --text-0: #F2F3F4;
+  --text-1: #B8BCC0;
+  --text-2: #8A8F94;
+  --accent: #D6A24A;
+  --accent-2: #F5D49B;
+}
+.exposure-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.exposure-title { font-size:20px; font-weight:700; color:var(--text-0); }
+.theme-toggle { background:transparent; border:1px solid var(--line-1); color:var(--text-1); padding:8px 10px; border-radius:12px; touch-action:manipulation; }
+
+.hero-card { background:var(--surface-1); border-radius:18px; padding:16px; border:1px solid var(--line-1); box-shadow:0 10px 30px rgba(0,0,0,0.28); }
+.hero-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.sensor-label { color:var(--accent-2); font-weight:700; font-size:22px; }
+.mode-badge { border:1px solid var(--accent); color:var(--accent); padding:6px 10px; border-radius:8px; background:transparent; font-weight:600; }
+
+.hero-visual { display:flex; flex-direction:column; align-items:center; gap:12px; padding:6px 0 12px; }
+.target-pill { border:2px solid var(--accent); padding:8px 18px; border-radius:10px; color:var(--accent-2); background:rgba(214,162,74,0.04); font-weight:800; font-size:34px; }
+.target-tags { display:flex; gap:12px; }
+.target-tag { background:var(--surface-2); padding:8px 14px; border-radius:18px; color:var(--text-1); border:1px solid var(--line-1); font-size:14px; }
+
+.focus-slider { width:100%; margin-top:14px; }
+.focus-track { height:10px; background:var(--line-2); border-radius:10px; position:relative; }
+.focus-knob { position:absolute; top:50%; transform:translate(-50%,-50%); width:26px; height:26px; border-radius:999px; background:var(--accent); border:2px solid var(--accent-2); }
+.focus-ticks { display:flex; justify-content:space-between; margin-top:8px; color:var(--text-2); font-size:12px; }
+
+.controls { margin-top:16px; display:flex; flex-direction:column; gap:12px; }
+.control-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.control-label { color:var(--text-1); font-size:14px; }
+.control-value { min-width:120px; text-align:center; font-weight:700; color:var(--text-0); }
+.control-actions { display:flex; gap:10px; }
+.small-btn { padding:10px 12px; border-radius:12px; background:transparent; border:1px solid var(--line-1); color:var(--text-1); }
+
+.results { margin-top:18px; display:flex; flex-direction:column; gap:12px; }
+.result-main { background:linear-gradient(180deg, rgba(214,162,74,0.06), transparent); border-radius:14px; padding:16px; text-align:center; border:1px solid rgba(214,162,74,0.14); }
+.result-main .title { color:var(--text-1); font-size:14px; }
+.result-main .value { color:var(--accent-2); font-weight:800; font-size:30px; margin-top:8px; }
+.result-secondary { background:var(--surface-1); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--line-1); }
+.result-secondary .label { color:var(--text-1); font-size:13px; }
+.result-secondary .value { color:var(--text-0); font-weight:700; }
+
+/* Day theme overrides */
+.day-theme { --bg-0: #F4F1EA; --surface-1: #FFFFFF; --surface-2: #F7F5EF; --line-1: rgba(31,27,22,0.06); --line-2: rgba(31,27,22,0.08); --text-0: #1F2328; --text-1: #5F6670; --text-2: #8A919B; --accent: #8A5A16; --accent-2: #C88A2C; }
+
+@media (min-width:420px) {
+  .exposure-root { padding:20px; }
+}
+
+/* Primary CTA touch-friendly */
+.primary-cta { display:block; width:100%; padding:14px 18px; border-radius:14px; background:var(--accent); color:var(--surface-1); font-weight:800; font-size:16px; border:none; margin-top:10px; }
+
+/* Selector card improvements */
+.selector-card { padding:10px 6px; }
+.selector-shell { display:flex; align-items:center; gap:8px; position:relative; }
+.selector-arrow { padding:10px 12px; border-radius:10px; }
+.selector-active-value { font-size:16px; font-weight:800; }
+
+/* fade overlays to hint more items off-screen */
+.selector-fade { position:absolute; top:0; bottom:0; width:56px; pointer-events:none; z-index:2; }
+.selector-fade-left { left:0; background: linear-gradient(90deg, var(--bg-0), rgba(0,0,0,0)); }
+.selector-fade-right { right:0; background: linear-gradient(270deg, var(--bg-0), rgba(0,0,0,0)); }
+
+/* small swipe hint triangles beside arrows */
+.selector-swipe-hint { width:20px; height:20px; display:flex; align-items:center; justify-content:center; color:var(--text-2); opacity:0.7; font-size:14px; z-index:3; }
+.selector-swipe-hint.left { margin-left:4px; }
+.selector-swipe-hint.right { margin-right:4px; }
+
+/* transient visual transitions */
+.selector-active { transition: transform 160ms ease, opacity 160ms ease; }
+.selector-side { opacity:0.5; transition: opacity 160ms ease, transform 160ms ease; }
+.selector-shell:hover .selector-side, .selector-shell:focus-within .selector-side { opacity:0.65; }
+
+/* support older switch-inline blocks used in ExposureScreen */
+.switch-inline { position:relative; display:flex; align-items:center; gap:8px; }
+.switch-inline-stack { gap:12px; }
+.swipe-fade { position:absolute; top:0; bottom:0; width:48px; pointer-events:none; z-index:2; }
+.swipe-fade-left { left:0; background: linear-gradient(90deg, var(--bg-0), rgba(0,0,0,0)); }
+.swipe-fade-right { right:0; background: linear-gradient(270deg, var(--bg-0), rgba(0,0,0,0)); }

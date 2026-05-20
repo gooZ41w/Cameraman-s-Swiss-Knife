@@ -177,14 +177,18 @@ export function ExposureScreen() {
         <div className="label-block">
           滤镜档位
           <div className="switch-inline switch-inline-stack">
+            <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="nd-switch-prev" className="btn" onClick={ndPrev} aria-label="prev">◀</button>
+            <div className="selector-swipe-hint left" aria-hidden>◀</div>
             <div data-testid="nd-switch-value" className="switch-value switch-value-stack">
               <span className="switch-main-value">{ND_PRESETS[ndPreset]?.label ?? ndPreset}</span>
               {showNdStops && ndPreset !== 'custom' && (
                 <span data-testid="nd-selected-stops" className="switch-subvalue">{ndSelectedStopsLabel}</span>
               )}
             </div>
+            <div className="selector-swipe-hint right" aria-hidden>▶</div>
             <button data-testid="nd-switch-next" className="btn" onClick={ndNext} aria-label="next">▶</button>
+            <div className="swipe-fade swipe-fade-right" aria-hidden />
           </div>
         </div>
 
@@ -193,9 +197,13 @@ export function ExposureScreen() {
         <div className="label-block">
           <div>快门</div>
           <div className="switch-inline">
+            <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="base-shutter-prev" className="btn" onClick={shutterPrev}>◀</button>
+            <div className="selector-swipe-hint left" aria-hidden>◀</div>
             <div data-testid="base-shutter-value" className="switch-value">{currentShutterLabel}</div>
+            <div className="selector-swipe-hint right" aria-hidden>▶</div>
             <button data-testid="base-shutter-next" className="btn" onClick={shutterNext}>▶</button>
+            <div className="swipe-fade swipe-fade-right" aria-hidden />
           </div>
         </div>
 
@@ -204,9 +212,13 @@ export function ExposureScreen() {
         <div className="label-block">
           曝光补偿
           <div className="switch-inline">
+            <div className="swipe-fade swipe-fade-left" aria-hidden />
             <button data-testid="comp-prev" className="btn" onClick={compPrev}>◀</button>
+            <div className="selector-swipe-hint left" aria-hidden>◀</div>
             <div data-testid="comp-value" className="switch-value">{compensationEv > 0 ? `+${compensationEv} EV` : `${compensationEv} EV`}</div>
+            <div className="selector-swipe-hint right" aria-hidden>▶</div>
             <button data-testid="comp-next" className="btn" onClick={compNext}>▶</button>
+            <div className="swipe-fade swipe-fade-right" aria-hidden />
           </div>
         </div>
 
