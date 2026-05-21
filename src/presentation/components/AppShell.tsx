@@ -3,6 +3,7 @@ import { kelvinToRgb } from '../../domain/temperature'
 import { useAppStore } from '../../stores/useAppStore'
 import { ExposureScreen } from '../screens/ExposureScreen'
 import { DofScreen } from '../screens/DofScreen'
+import SettingsPanel from './SettingsPanel'
 
 function rgbToCss([red, green, blue]: [number, number, number]): string {
   return `rgb(${red}, ${green}, ${blue})`
@@ -17,18 +18,22 @@ export function AppShell() {
   const setTemperature = useAppStore((state) => state.setTemperature)
   const rgb = kelvinToRgb(temperature)
   const previewBgStyle = { '--preview-bg': rgbToCss(rgb) } as CSSProperties
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   return (
     <main className="app-main">
+      <button className="settings-button" style={{ position: 'fixed', right: 12, top: 12, zIndex: 200 }} aria-label="settings" onClick={() => setSettingsOpen(true)}>设置</button>
       {route === 'home' && (
         <section className="page-container home-center">
           <div className="card-panel">
             <h1 className="app-title">摄影小助手</h1>
             <div className="menu-list">
-              <button onClick={() => setRoute('exposure')} className="menu-btn">曝光计算器</button>
+              <button onClick={() => setRoute('exposure')} className="menu-btn">ND曝光计算器</button>
+              <div className="menu-info">摇拍助手（开发中）</div>
               <button onClick={() => setRoute('dof')} className="menu-btn">景深计算器</button>
+              <div className="menu-info">放大倍率换算（开发中）</div>
               <button onClick={() => setRoute('temperature')} className="menu-btn">色温与色相预览</button>
-              <div className="menu-info">斗转辅助（待开放）</div>
+              <div className="menu-info">参数斗蛐蛐助手</div>
               <div className="menu-info-last">摄影小知识（待开放）</div>
             </div>
           </div>
@@ -85,6 +90,8 @@ export function AppShell() {
         </section>
       )}
 
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
       {route === 'dof' && (
         <section className="page-container section-panel">
           <button onClick={() => setRoute('home')} className="back-btn">返回主页</button>
@@ -94,3 +101,4 @@ export function AppShell() {
     </main>
   )
 }
+

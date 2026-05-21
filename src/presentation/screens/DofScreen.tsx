@@ -32,6 +32,7 @@ export function DofScreen() {
   return (
     <section className="screen-section">
       <h1 className="section-title">景深计算器</h1>
+      <div className="section-note">放大倍率换算（开发中）</div>
       <p className="muted-note">
         计算超焦距、景深范围与清晰度边界。所有结果包含 ±5%
         物理容差。<strong className="strong-emphasis">请输入镜头的实际物理焦距，切勿输入等效焦距。</strong>

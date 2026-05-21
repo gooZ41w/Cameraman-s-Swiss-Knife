@@ -6,7 +6,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import { ND_PRESETS } from '../../domain/exposure'
 import { useHoldAccelerator } from '../../utils/useHoldAccelerator'
 import { useDragSnap } from '../../utils/useDragSnap'
-import { useState } from 'react'
+import theme, { selectorTranslateFactor, selectorScaleMaxShrink, selectorScaleDivisor, selectorBlurMax, selectorBlurDivisor, selectorReducedMotion, } from '../theme'
 
 // presentation formatting helpers in ../formatters/exposureFormat
 
@@ -144,6 +144,8 @@ export function ExposureScreen() {
   const ndHoldPrev = useHoldAccelerator(ndPrev)
   const ndHoldNext = useHoldAccelerator(ndNext)
   const [ndOffset, setNdOffset] = useState(0)
+  const [ndReleasing, setNdReleasing] = useState(false)
+  const [ndDragging, setNdDragging] = useState(false)
   const ndDrag = useDragSnap(ndPrev, ndNext, { onMove: (dx) => setNdOffset(dx) })
 
   // base shutter switch helpers
@@ -163,6 +165,8 @@ export function ExposureScreen() {
   const shutterHoldPrev = useHoldAccelerator(shutterPrev)
   const shutterHoldNext = useHoldAccelerator(shutterNext)
   const [shutterOffset, setShutterOffset] = useState(0)
+  const [shutterReleasing, setShutterReleasing] = useState(false)
+  const [shutterDragging, setShutterDragging] = useState(false)
   const shutterDrag = useDragSnap(shutterPrev, shutterNext, { onMove: (dx) => setShutterOffset(dx) })
 
   // compensation switch helpers
@@ -181,35 +185,76 @@ export function ExposureScreen() {
   const compHoldPrev = useHoldAccelerator(compPrev)
   const compHoldNext = useHoldAccelerator(compNext)
   const [compOffset, setCompOffset] = useState(0)
+  const [compReleasing, setCompReleasing] = useState(false)
+  const [compDragging, setCompDragging] = useState(false)
+
+  const sideStyle = (offset: number, invert = false) => {
+    const sign = invert ? -1 : 1
+    const computed = typeof window !== 'undefined' ? getComputedStyle(document.documentElement) : null
+    const translateFactor = typeof selectorTranslateFactor !== 'undefined' && selectorTranslateFactor !== null
+      ? parseFloat(String(selectorTranslateFactor))
+      : computed ? parseFloat(computed.getPropertyValue('--selector-translate-factor') || '0.2') : 0.2
+    const scaleMaxShrink = typeof selectorScaleMaxShrink !== 'undefined' && selectorScaleMaxShrink !== null
+      ? parseFloat(String(selectorScaleMaxShrink))
+      : computed ? parseFloat(computed.getPropertyValue('--selector-scale-max-shrink') || '0.03') : 0.03
+    const scaleDiv = typeof selectorScaleDivisor !== 'undefined' && selectorScaleDivisor !== null
+      ? parseFloat(String(selectorScaleDivisor))
+      : computed ? parseFloat(computed.getPropertyValue('--selector-scale-divisor') || '800') : 800
+    const blurMax = typeof selectorBlurMax !== 'undefined' && selectorBlurMax !== null
+      ? parseFloat(String(selectorBlurMax))
+      : computed ? parseFloat(computed.getPropertyValue('--selector-blur-max') || '1') : 1
+    const blurDiv = typeof selectorBlurDivisor !== 'undefined' && selectorBlurDivisor !== null
+      ? parseFloat(String(selectorBlurDivisor))
+      : computed ? parseFloat(computed.getPropertyValue('--selector-blur-divisor') || '200') : 200
+    const reduced = (typeof selectorReducedMotion !== 'undefined' && selectorReducedMotion !== null
+      ? String(selectorReducedMotion).trim() === '1'
+      : computed ? computed.getPropertyValue('--selector-reduced-motion').trim() === '1' : false)
+    if (reduced) {
+      return { transform: 'none', opacity: 1, filter: 'none' }
+    }
+
+    const tx = offset * translateFactor * sign
+    const opacity = Math.max(0.35, 1 - Math.min(Math.abs(offset) / 120, 0.65))
+    const scale = 1 - Math.min(Math.abs(offset) / scaleDiv, scaleMaxShrink)
+    const blurPx = Math.min(Math.abs(offset) / blurDiv, blurMax)
+    return { transform: `translateX(${tx}px) scale(${scale})`, opacity, filter: `blur(${blurPx}px)` }
+  }
   const compDrag = useDragSnap(compPrev, compNext, { onMove: (dx) => setCompOffset(dx) })
 
   return (
     <section className="container" data-testid="exposure-page">
       {/* 顶部标题栏 + 设置按钮 */}
       <div className="header-row">
-        <h1 className="h1">曝光计算器</h1>
+        <h1 className="h1">ND曝光计算器</h1>
+        <div className="section-note">摇拍助手（开发中）</div>
       </div>
 
       {/* 参数区：ND 选择在顶部以符合线框 */}
       <div className="grid-1">
         <div className="label-block">
           滤镜档位
-          <div className="switch-inline switch-inline-stack"
-            onPointerDown={ndDrag.onPointerDown}
+          <div className={`switch-inline switch-inline-stack${ndDragging ? ' dragging' : ''}`}
+            onPointerDown={(e) => { ndDrag.onPointerDown(e); setNdDragging(true) }}
             onPointerMove={ndDrag.onPointerMove}
-            onPointerUp={ndDrag.onPointerUp}
+            onPointerUp={(e) => {
+              ndDrag.onPointerUp(e)
+              setNdReleasing(true)
+              setNdOffset(0)
+              setNdDragging(false)
+              window.setTimeout(() => setNdReleasing(false), 280)
+            }}
           >
             <div className="swipe-fade swipe-fade-left" aria-hidden />
-            <button data-testid="nd-switch-prev" className="btn" onClick={ndPrev} aria-label="prev" onMouseDown={() => ndHoldPrev.start()} onMouseUp={() => ndHoldPrev.stop()} onMouseLeave={() => ndHoldPrev.stop()} onTouchStart={() => ndHoldPrev.start()} onTouchEnd={() => ndHoldPrev.stop()}>◀</button>
+            <button data-testid="nd-switch-prev" className={`btn ${ndReleasing ? 'releasing' : ''}`} onClick={ndPrev} aria-label="prev" onPointerDown={() => ndHoldPrev.start()} onPointerUp={() => ndHoldPrev.stop()} onPointerLeave={() => ndHoldPrev.stop()} style={sideStyle(ndOffset, true)}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
-            <div data-testid="nd-switch-value" className="switch-value switch-value-stack" style={{ transform: `translateX(${ndOffset}px)`, transition: ndOffset === 0 ? 'transform 180ms ease' : 'none' }}>
+            <div data-testid="nd-switch-value" className={`switch-value switch-value-stack ${ndReleasing ? 'releasing' : ''}`} style={{ transform: `translateX(${ndOffset}px)` }}>
               <span className="switch-main-value">{ND_PRESETS[ndPreset]?.label ?? ndPreset}</span>
               {showNdStops && ndPreset !== 'custom' && (
                 <span data-testid="nd-selected-stops" className="switch-subvalue">{ndSelectedStopsLabel}</span>
               )}
             </div>
             <div className="selector-swipe-hint right" aria-hidden>▶</div>
-            <button data-testid="nd-switch-next" className="btn" onClick={ndNext} aria-label="next" onMouseDown={() => ndHoldNext.start()} onMouseUp={() => ndHoldNext.stop()} onMouseLeave={() => ndHoldNext.stop()} onTouchStart={() => ndHoldNext.start()} onTouchEnd={() => ndHoldNext.stop()}>▶</button>
+            <button data-testid="nd-switch-next" className={`btn ${ndReleasing ? 'releasing' : ''}`} onClick={ndNext} aria-label="next" onPointerDown={() => ndHoldNext.start()} onPointerUp={() => ndHoldNext.stop()} onPointerLeave={() => ndHoldNext.stop()} style={sideStyle(ndOffset, false)}>▶</button>
             <div className="swipe-fade swipe-fade-right" aria-hidden />
           </div>
         </div>
@@ -218,17 +263,23 @@ export function ExposureScreen() {
 
         <div className="label-block">
           <div>快门</div>
-          <div className="switch-inline"
-            onPointerDown={shutterDrag.onPointerDown}
+          <div className={`switch-inline${shutterDragging ? ' dragging' : ''}`}
+            onPointerDown={(e) => { shutterDrag.onPointerDown(e); setShutterDragging(true) }}
             onPointerMove={shutterDrag.onPointerMove}
-            onPointerUp={shutterDrag.onPointerUp}
+            onPointerUp={(e) => {
+              shutterDrag.onPointerUp(e)
+              setShutterReleasing(true)
+              setShutterOffset(0)
+              setShutterDragging(false)
+              window.setTimeout(() => setShutterReleasing(false), 280)
+            }}
           >
             <div className="swipe-fade swipe-fade-left" aria-hidden />
-            <button data-testid="base-shutter-prev" className="btn" onClick={shutterPrev} onMouseDown={() => shutterHoldPrev.start()} onMouseUp={() => shutterHoldPrev.stop()} onMouseLeave={() => shutterHoldPrev.stop()} onTouchStart={() => shutterHoldPrev.start()} onTouchEnd={() => shutterHoldPrev.stop()}>◀</button>
+            <button data-testid="base-shutter-prev" className={`btn ${shutterReleasing ? 'releasing' : ''}`} onClick={shutterPrev} onPointerDown={() => shutterHoldPrev.start()} onPointerUp={() => shutterHoldPrev.stop()} onPointerLeave={() => shutterHoldPrev.stop()} style={sideStyle(shutterOffset, true)}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
-            <div data-testid="base-shutter-value" className="switch-value" style={{ transform: `translateX(${shutterOffset}px)`, transition: shutterOffset === 0 ? 'transform 180ms ease' : 'none' }}>{currentShutterLabel}</div>
+            <div data-testid="base-shutter-value" className={`switch-value ${shutterReleasing ? 'releasing' : ''}`} style={{ transform: `translateX(${shutterOffset}px)` }}>{currentShutterLabel}</div>
             <div className="selector-swipe-hint right" aria-hidden>▶</div>
-            <button data-testid="base-shutter-next" className="btn" onClick={shutterNext} onMouseDown={() => shutterHoldNext.start()} onMouseUp={() => shutterHoldNext.stop()} onMouseLeave={() => shutterHoldNext.stop()} onTouchStart={() => shutterHoldNext.start()} onTouchEnd={() => shutterHoldNext.stop()}>▶</button>
+            <button data-testid="base-shutter-next" className={`btn ${shutterReleasing ? 'releasing' : ''}`} onClick={shutterNext} onPointerDown={() => shutterHoldNext.start()} onPointerUp={() => shutterHoldNext.stop()} onPointerLeave={() => shutterHoldNext.stop()} style={sideStyle(shutterOffset, false)}>▶</button>
             <div className="swipe-fade swipe-fade-right" aria-hidden />
           </div>
         </div>
@@ -237,17 +288,23 @@ export function ExposureScreen() {
 
         <div className="label-block">
           曝光补偿
-          <div className="switch-inline"
-            onPointerDown={compDrag.onPointerDown}
+          <div className={`switch-inline${compDragging ? ' dragging' : ''}`}
+            onPointerDown={(e) => { compDrag.onPointerDown(e); setCompDragging(true) }}
             onPointerMove={compDrag.onPointerMove}
-            onPointerUp={compDrag.onPointerUp}
+            onPointerUp={(e) => {
+              compDrag.onPointerUp(e)
+              setCompReleasing(true)
+              setCompOffset(0)
+              setCompDragging(false)
+              window.setTimeout(() => setCompReleasing(false), 280)
+            }}
           >
             <div className="swipe-fade swipe-fade-left" aria-hidden />
-            <button data-testid="comp-prev" className="btn" onClick={compPrev} onMouseDown={() => compHoldPrev.start()} onMouseUp={() => compHoldPrev.stop()} onMouseLeave={() => compHoldPrev.stop()} onTouchStart={() => compHoldPrev.start()} onTouchEnd={() => compHoldPrev.stop()}>◀</button>
+            <button data-testid="comp-prev" className={`btn ${compReleasing ? 'releasing' : ''}`} onClick={compPrev} onMouseDown={() => compHoldPrev.start()} onMouseUp={() => compHoldPrev.stop()} onMouseLeave={() => compHoldPrev.stop()} onTouchStart={() => compHoldPrev.start()} onTouchEnd={() => compHoldPrev.stop()} style={sideStyle(compOffset, true)}>◀</button>
             <div className="selector-swipe-hint left" aria-hidden>◀</div>
-            <div data-testid="comp-value" className="switch-value" style={{ transform: `translateX(${compOffset}px)`, transition: compOffset === 0 ? 'transform 180ms ease' : 'none' }}>{compensationEv > 0 ? `+${compensationEv} EV` : `${compensationEv} EV`}</div>
+            <div data-testid="comp-value" className={`switch-value ${compReleasing ? 'releasing' : ''}`} style={{ transform: `translateX(${compOffset}px)` }}>{compensationEv > 0 ? `+${compensationEv} EV` : `${compensationEv} EV`}</div>
             <div className="selector-swipe-hint right" aria-hidden>▶</div>
-            <button data-testid="comp-next" className="btn" onClick={compNext} onMouseDown={() => compHoldNext.start()} onMouseUp={() => compHoldNext.stop()} onMouseLeave={() => compHoldNext.stop()} onTouchStart={() => compHoldNext.start()} onTouchEnd={() => compHoldNext.stop()}>▶</button>
+            <button data-testid="comp-next" className={`btn ${compReleasing ? 'releasing' : ''}`} onClick={compNext} onMouseDown={() => compHoldNext.start()} onMouseUp={() => compHoldNext.stop()} onMouseLeave={() => compHoldNext.stop()} onTouchStart={() => compHoldNext.start()} onTouchEnd={() => compHoldNext.stop()} style={sideStyle(compOffset, false)}>▶</button>
             <div className="swipe-fade swipe-fade-right" aria-hidden />
           </div>
         </div>
@@ -275,11 +332,7 @@ export function ExposureScreen() {
           <div data-testid="nd-shutter-result" className="large-32" style={{ textAlign: 'center' }}>{formatMaybeHMS(plan.ndAdjustedShutterSeconds)}</div>
         </div>
 
-        <div className="card">
-          <h3 className="card-title">当前 EV100 / EVISO</h3>
-          <div data-testid="ev-display" className="large-22">{plan.baseEvIso.toFixed(2)}</div>
-          <p className="muted-small mt-8">基于当前三参数计算的基础曝光值</p>
-        </div>
+        {/* EV100/EVISO display removed per UX update */}
       </div>
     </section>
   )
