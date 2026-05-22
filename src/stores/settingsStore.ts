@@ -7,9 +7,11 @@ type SettingsState = {
   ndDisplayMode: string
   shutterStep: ShutterStep
   showNdStops: boolean
+  selectorReducedMotion: boolean
   setNdDisplayMode: (mode: string) => void
   setShutterStep: (step: ShutterStep) => void
   setShowNdStops: (show: boolean) => void
+  setSelectorReducedMotion: (reduced: boolean) => void
 }
 
 export const useSettingsStore = create(
@@ -18,9 +20,11 @@ export const useSettingsStore = create(
       ndDisplayMode: 'label',
       shutterStep: '1/3',
       showNdStops: true,
+      selectorReducedMotion: false,
       setNdDisplayMode: (mode: string) => set({ ndDisplayMode: mode }),
       setShutterStep: (step: ShutterStep) => set({ shutterStep: step }),
       setShowNdStops: (show: boolean) => set({ showNdStops: show }),
+      setSelectorReducedMotion: (reduced: boolean) => set({ selectorReducedMotion: reduced }),
     }),
     {
       name: 'exposure_settings',

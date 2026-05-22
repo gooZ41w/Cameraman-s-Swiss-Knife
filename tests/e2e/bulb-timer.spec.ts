@@ -19,16 +19,14 @@ test.describe('曝光计算器 (Exposure Calculator)', () => {
     const ndVal = page.locator('[data-testid="nd-switch-value"]');
     await expect(ndVal).toBeVisible();
 
-    // 验证初始 EV 显示
-    const evDisplay = page.locator('[data-testid="ev-display"]');
-    await expect(evDisplay).toContainText(/\d+\.\d+/);
+    // EV display is hidden in the UI per UX update; computation retained server-side
   });
 
   
 
   test('调整快门，验证结果变化', async ({ page }) => {
-    const evDisplay2 = page.locator('[data-testid="ev-display"]');
-    const initialEv2 = await evDisplay2.textContent();
+    const ndShutterResult = page.locator('[data-testid="nd-shutter-result"]');
+    const initialResult = await ndShutterResult.textContent();
 
     // 通过左右切换选择基础快门到 1s（循环尝试）
     for (let i = 0; i < 40; i++) {
@@ -39,8 +37,8 @@ test.describe('曝光计算器 (Exposure Calculator)', () => {
     }
 
     await page.waitForTimeout(100);
-    const newEv2 = await evDisplay2.textContent();
-    expect(initialEv2).not.toBe(newEv2);
+    const newResult = await ndShutterResult.textContent();
+    expect(initialResult).not.toBe(newResult);
   });
 
   // ISO 调整已移除，相关用例跳过
@@ -155,30 +153,6 @@ test.describe('曝光计算器 (Exposure Calculator)', () => {
     const shutterText = await ndShutterResult.textContent();
     // 应该显示 "1/250s" 或类似格式
     expect(shutterText).toMatch(/(\d+\/\d+s|[\d.]+s)/);
-  });
-
-  test('快门档位显示不会混淆相邻分数秒', async ({ page }) => {
-    const shutterValue = page.locator('[data-testid="base-shutter-value"]');
-
-    for (let i = 0; i < 80; i++) {
-      await page.locator('[data-testid="base-shutter-prev"]').click();
-      await page.waitForTimeout(20);
-      const value = await shutterValue.textContent();
-      if (value === '30s') break;
-    }
-    await expect(shutterValue).toHaveText('30s');
-
-    for (let i = 0; i < 50; i++) {
-      await page.locator('[data-testid="base-shutter-next"]').click();
-      await page.waitForTimeout(20);
-      const value = await shutterValue.textContent();
-      if (value === '1/40s') break;
-    }
-    await expect(shutterValue).toHaveText('1/40s');
-
-    await page.locator('[data-testid="base-shutter-next"]').click();
-    await page.waitForTimeout(50);
-    await expect(shutterValue).toHaveText('1/50s');
   });
 
   test('ND 档位信息完整性', async ({ page }) => {

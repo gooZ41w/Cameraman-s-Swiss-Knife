@@ -2,26 +2,40 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { HoldAccelerator } from '../../src/utils/holdAccelerator'
 
 describe('HoldAccelerator', () => {
-  let clock: ReturnType<typeof vi.useFakeTimers>
   beforeEach(() => {
-    clock = vi.useFakeTimers()
+    vi.useFakeTimers()
   })
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('calls callback immediately and repeats after delay', () => {
+  it('calls callback immediately, repeats, and accelerates', () => {
     const cb = vi.fn()
     const h = new HoldAccelerator(cb)
     h.start()
     expect(cb).toHaveBeenCalledTimes(1)
 
-    // advance past initial delay (400ms)
-    clock.advanceTimersByTime(400)
-    // first interval tick
-    clock.advanceTimersByTime(200)
-    expect(cb).toHaveBeenCalled()
+    vi.advanceTimersByTime(400)
+    expect(cb).toHaveBeenCalledTimes(1)
+
+    vi.advanceTimersByTime(200)
+    expect(cb).toHaveBeenCalledTimes(2)
+
+    vi.advanceTimersByTime(170)
+    expect(cb).toHaveBeenCalledTimes(3)
 
     h.stop()
+    vi.advanceTimersByTime(1000)
+    expect(cb).toHaveBeenCalledTimes(3)
+  })
+
+  it('ignores repeated start calls while running', () => {
+    const cb = vi.fn()
+    const h = new HoldAccelerator(cb)
+
+    h.start()
+    h.start()
+
+    expect(cb).toHaveBeenCalledTimes(1)
   })
 })

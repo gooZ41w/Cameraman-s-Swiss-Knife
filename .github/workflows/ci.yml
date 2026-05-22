@@ -19,9 +19,14 @@ jobs:
         run: npm ci
       - name: Run unit tests (vitest)
         run: npm run test:unit -- --coverage
-      - name: Start dev server
-        run: npm run dev &
-      - name: Wait for dev server
-        run: npx wait-on http://localhost:5173 --timeout 15000
       - name: Run Playwright E2E
         run: npx playwright test
+      - name: Generate visual diff
+        run: npm run visual:diff
+      - name: Upload visual diff artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exposure-diff
+          path: test-results/exposure-diff.png
+          if-no-files-found: warn
