@@ -1,57 +1,61 @@
-# 摄影助手 App
+# 穷哥们的摄影小帮手
 
-一个面向摄影爱好者的纯前端计算工具，提供曝光计算、景深计算和色温预览等功能，适合快速查算与现场参考。
+当前版本：`build 1.1.1`
 
-## 功能
+一个面向摄影现场使用的纯前端摄影工具。项目优先适配安卓竖屏与单手触控场景，视觉方向是暗场、克制、数值优先的现场拍摄工具，而不是内容型网站或营销页。
 
-- ND曝光计算器
+## 当前状态
+
+- 首页已重做为暗色入口页，功能入口平级展示。
+- 功能页采用独立页面结构，不再作为首页子项嵌套。
+- ND 曝光计算器是当前重点功能，已优化滚动/滑动切换交互。
+- 景深、色温等功能保留领域计算与测试基础，页面会按新规范逐步重建。
+- Android APK 可通过本地 Capacitor 封装流程生成；生成工程与 APK 产物默认不进入仓库。
+
+## 功能清单
+
+- ND 曝光计算器
 - 大光比助手（开发中）
 - 景深计算器
 - 放大倍率换算（开发中）
-- 色温与色相预览
-- 参数斗蛐蛐助手（镜头参数对比）
+- 色温与色相预览（开发中）
+- 参数斗蛐蛐助手（开发中）
 - 摄影小知识（待开放）
 
 ## 快速开始
 
-### 1. 安装依赖
-
 ```bash
 npm install
-```
-
-### 2. 启动开发环境
-
-```bash
 npm run dev
 ```
 
 启动后在浏览器中打开 Vite 提示的本地地址。
 
-### 3. 生产构建
+## 常用命令
 
 ```bash
 npm run build
-```
-
-### 4. 预览构建结果
-
-```bash
 npm run preview
-```
-
-## 测试
-
-### 单元测试
-
-```bash
 npm run test:unit
+npm run test:e2e
+npm run visual:diff
 ```
 
-### E2E 测试
+## Android 打包
+
+项目使用 Capacitor 做本地 Android 封装。为避免上传本机 SDK 路径、原生构建缓存、APK 产物和签名文件，`android/`、`capacitor.config.ts`、`*.apk`、`*.aab`、`local.properties`、`*.keystore`、`*.jks` 等均已加入 `.gitignore`。
+
+本地封装时需要准备 JDK 与 Android SDK，然后执行：
 
 ```bash
-npm run test:e2e
+npm run android:sync
+npm run android:apk
+```
+
+生成的 debug APK 通常位于：
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ## 技术栈
@@ -60,9 +64,10 @@ npm run test:e2e
 - Vite
 - TypeScript
 - Zustand
+- Capacitor
 - Vitest
 - Playwright
-- 全局 CSS 样式
+- 全局 CSS
 
 ## 项目结构
 
@@ -70,26 +75,33 @@ npm run test:e2e
 src/
   domain/          公式与领域计算
   stores/          页面状态
-  presentation/    页面、组件和样式
+  utils/           交互与通用工具
+  presentation/    页面、组件、格式化与样式
 
 docs/
   需求和公式原理文档.md
+  页面内容与控件规范.md
+  项目视觉设计系统.md
   技术框架和技术栈框架.md
-  用户界面操作文档.md
 
 tests/
-  unit/
-  e2e/
+  unit/            领域计算与格式化测试
+  e2e/             页面交互与视觉回归测试
+
+archive/
+  conversation_history.md
 ```
 
-## 文档
+## 文档入口
 
 - [需求和公式原理文档](docs/需求和公式原理文档.md)
+- [页面内容与控件规范](docs/页面内容与控件规范.md)
+- [项目视觉设计系统](docs/项目视觉设计系统.md)
 - [技术框架和技术栈框架](docs/技术框架和技术栈框架.md)
-- [用户界面操作文档](docs/用户界面操作文档.md)
 
-## 说明
+## 维护约定
 
-- 核心公式位于 `src/domain/`
-- 页面交互位于 `src/presentation/`
-- 任何阈值、公式或结果显示格式的调整，都应同步更新测试与文档
+- 需求文档只记录功能用途和公式原理。
+- 页面内容与控件规范只记录页面层级、输入控件和输出控件。
+- 视觉、布局、交互细节优先沉淀到视觉设计系统或实现文档中。
+- 任何公式、阈值、结果格式或核心交互的调整，都应同步更新测试与文档。
