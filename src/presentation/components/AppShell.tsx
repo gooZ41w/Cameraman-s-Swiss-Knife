@@ -1,10 +1,11 @@
-import { type ChangeEvent, useMemo, useState } from 'react'
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { computeFullDof } from '../../domain/dof'
 import { computeExposurePlan, ND_PRESETS } from '../../domain/exposure'
 import { SENSOR_FORMATS, type SensorFormat } from '../../domain/types'
 import { useDofStore } from '../../stores/dofStore'
 import { useExposureStore } from '../../stores/exposureStore'
-import { useDragSnap } from '../../utils/useDragSnap'
+
+const APP_VERSION = '1.1.0'
 
 type FeatureKey =
   | 'nd-exposure'
@@ -189,6 +190,11 @@ function wrapIndex(index: number, length: number): number {
   return (index + length) % length
 }
 
+function circularDistance(a: number, b: number, length: number): number {
+  const direct = Math.abs(a - b)
+  return Math.min(direct, length - direct)
+}
+
 function findNearestIndex(values: number[], value: number): number {
   return values.reduce((bestIndex, item, index) => {
     return Math.abs(item - value) < Math.abs(values[bestIndex] - value) ? index : bestIndex
@@ -239,36 +245,116 @@ type ExposurePickerProps = {
   items: Array<{ value: string; label: string; meta?: string }>
   activeIndex: number
   testId: string
-  onPrev: () => void
-  onNext: () => void
+  onStep: (steps: number) => void
 }
 
-function ExposurePicker({ title, items, activeIndex, testId, onPrev, onNext }: ExposurePickerProps) {
-  const [dragging, setDragging] = useState(false)
-  const active = items[activeIndex]
-  const prev = items[wrapIndex(activeIndex - 1, items.length)]
-  const next = items[wrapIndex(activeIndex + 1, items.length)]
-  const dragHandlers = useDragSnap(onPrev, onNext, {
-    onMove: (dx) => setDragging(Math.abs(dx) > 0),
-  })
+const pickerItemStride = 156
+const pickerMaxStep = 2
+const pickerVisibleOffsets = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
+
+function ExposurePicker({ title, items, activeIndex, testId, onStep }: ExposurePickerProps) {
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isDragging = useRef(false)
+  const pointerStartX = useRef(0)
+  const pointerStartTime = useRef(0)
+  const [displayIndex, setDisplayIndex] = useState(activeIndex)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [settleOffset, setSettleOffset] = useState(0)
+  const [targetStep, setTargetStep] = useState(0)
+  const [settling, setSettling] = useState(false)
+  const visualOffset = isDragging.current ? dragOffset : settleOffset
+  const previewStep = settling ? targetStep : Math.max(-pickerMaxStep, Math.min(pickerMaxStep, Math.round(-visualOffset / pickerItemStride)))
+
+  useEffect(() => {
+    if (!settling) setDisplayIndex(activeIndex)
+  }, [activeIndex, settling])
+
+  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (settleTimer.current) clearTimeout(settleTimer.current)
+    isDragging.current = true
+    pointerStartX.current = event.clientX
+    pointerStartTime.current = performance.now()
+    setSettling(false)
+    setTargetStep(0)
+    setSettleOffset(0)
+    setDragOffset(0)
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+  }
+
+  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!isDragging.current) return
+    const dx = event.clientX - pointerStartX.current
+    setDragOffset(Math.max(-pickerItemStride * pickerMaxStep, Math.min(pickerItemStride * pickerMaxStep, dx)))
+  }
+
+  function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
+    if (!isDragging.current) return
+    isDragging.current = false
+    const dx = event.clientX - pointerStartX.current
+    const clampedDx = Math.max(-pickerItemStride * pickerMaxStep, Math.min(pickerItemStride * pickerMaxStep, dx))
+    const elapsed = Math.max(1, performance.now() - pointerStartTime.current)
+    const velocity = Math.abs(dx) / elapsed
+    const distanceSteps = Math.floor((Math.abs(dx) + pickerItemStride * 0.35) / pickerItemStride)
+    const velocityBonus = velocity > 1.1 && Math.abs(dx) > 44 ? 1 : 0
+    const steps = Math.min(pickerMaxStep, Math.max(Math.abs(dx) > 18 ? 1 : 0, distanceSteps + velocityBonus))
+    const signedSteps = dx < 0 ? steps : -steps
+
+    if (steps > 0) {
+      setSettling(true)
+      setTargetStep(signedSteps)
+      setSettleOffset(clampedDx)
+      window.requestAnimationFrame(() => {
+        setSettleOffset(-signedSteps * pickerItemStride)
+      })
+      settleTimer.current = setTimeout(() => {
+        setDisplayIndex(wrapIndex(displayIndex + signedSteps, items.length))
+        setTargetStep(0)
+        onStep(signedSteps)
+        setDragOffset(0)
+        setSettleOffset(0)
+        setSettling(false)
+      }, 260)
+    } else {
+      setDragOffset(0)
+      setSettleOffset(0)
+      setTargetStep(0)
+      setSettling(false)
+    }
+
+    event.currentTarget.releasePointerCapture?.(event.pointerId)
+  }
 
   return (
     <section className="exposure-picker" aria-label={title}>
       <div className="exposure-picker-title">{title}</div>
       <div className="exposure-picker-line exposure-picker-line-top" aria-hidden="true" />
-      <div className={`switch-inline exposure-picker-options ${dragging ? 'dragging' : ''}`} {...dragHandlers}>
-        <div className="exposure-picker-side" data-testid={`${testId}-prev`} aria-hidden="true">
-          <span>{prev.label}</span>
-          {prev.meta ? <small>{prev.meta}</small> : null}
-        </div>
-        <div className="exposure-picker-current" data-testid={`${testId}-value`}>
-          <span>{active.label}</span>
-          {active.meta ? <small>{active.meta}</small> : null}
-        </div>
-        <div className="exposure-picker-side" data-testid={`${testId}-next`} aria-hidden="true">
-          <span>{next.label}</span>
-          {next.meta ? <small>{next.meta}</small> : null}
-        </div>
+      <div
+        className={`switch-inline exposure-picker-options ${isDragging.current ? 'dragging' : ''} ${settling ? 'settling' : ''}`}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
+        {pickerVisibleOffsets.map((offset) => {
+          const itemIndex = wrapIndex(displayIndex + offset, items.length)
+          const item = items[itemIndex]
+          const x = offset * pickerItemStride + visualOffset
+          const previewDistance = Math.abs(offset - previewStep)
+          const isSelected = offset === previewStep || (offset === 0 && !settling && !isDragging.current)
+          const isVisible = previewDistance <= 1
+
+          return (
+            <div
+              key={`${offset}-${item.value}`}
+              className={`exposure-picker-item ${isVisible ? 'is-visible' : ''} ${isSelected ? 'is-selected' : ''}`}
+              style={{ transform: `translate(${x}px, -50%) ${isSelected ? 'scale(1.04)' : ''}` }}
+              data-testid={offset === 0 ? `${testId}-value` : undefined}
+            >
+              <span>{item.label}</span>
+              {item.meta ? <small>{item.meta}</small> : null}
+            </div>
+          )
+        })}
       </div>
       <div className="exposure-picker-line exposure-picker-line-bottom" aria-hidden="true" />
     </section>
@@ -339,24 +425,21 @@ function ExposureCalculatorPage({ onBack }: { onBack: () => void }) {
             items={ndItems}
             activeIndex={ndIndex}
             testId="nd-switch"
-            onPrev={() => setNdPreset(ndOptions[wrapIndex(ndIndex - 1, ndOptions.length)].label)}
-            onNext={() => setNdPreset(ndOptions[wrapIndex(ndIndex + 1, ndOptions.length)].label)}
+            onStep={(steps) => setNdPreset(ndOptions[wrapIndex(ndIndex + steps, ndOptions.length)].label)}
           />
           <ExposurePicker
             title="基础快门"
             items={shutterItems}
             activeIndex={shutterIndex}
             testId="base-shutter"
-            onPrev={() => setShutterSeconds(shutterOptions[wrapIndex(shutterIndex - 1, shutterOptions.length)].seconds)}
-            onNext={() => setShutterSeconds(shutterOptions[wrapIndex(shutterIndex + 1, shutterOptions.length)].seconds)}
+            onStep={(steps) => setShutterSeconds(shutterOptions[wrapIndex(shutterIndex + steps, shutterOptions.length)].seconds)}
           />
           <ExposurePicker
             title="曝光补偿"
             items={compensationItems}
             activeIndex={compensationIndex}
             testId="comp"
-            onPrev={() => setCompensationEv(compensationOptions[wrapIndex(compensationIndex - 1, compensationOptions.length)])}
-            onNext={() => setCompensationEv(compensationOptions[wrapIndex(compensationIndex + 1, compensationOptions.length)])}
+            onStep={(steps) => setCompensationEv(compensationOptions[wrapIndex(compensationIndex + steps, compensationOptions.length)])}
           />
         </section>
 
@@ -457,11 +540,12 @@ function DofSummary({ result, focusDistanceM }: { result: ReturnType<typeof comp
   )
 }
 
-function DofMetricCard({ label, value, testId }: { label: string; value: string; testId: string }) {
+function DofMetricCard({ label, value, testId, note }: { label: string; value: string; testId: string; note?: string }) {
   return (
     <div className="dof-metric-card">
       <span>{label}</span>
       <strong data-testid={testId}>{value}</strong>
+      {note ? <small className="dof-metric-note">{note}</small> : null}
     </div>
   )
 }
@@ -620,7 +704,12 @@ function DofCalculatorPage({ onBack }: { onBack: () => void }) {
             <DofMetricCard label="景深近界" value={formatDofDistance(result.D_n_mm)} testId="dof-near-value" />
             <DofMetricCard label="景深远界" value={formatDofDistance(result.D_f_mm)} testId="dof-far-value" />
             <DofMetricCard label="全景深" value={formatDofDistance(result.delta_D_mm)} testId="dof-total-value" />
-            <DofMetricCard label="超焦距" value={formatDofDistance(result.H_mm)} testId="dof-hyperfocal-value" />
+            <DofMetricCard
+              label="超焦距"
+              value={formatDofDistance(result.H_mm)}
+              testId="dof-hyperfocal-value"
+              note={focusDistance * 1000 > result.H_mm ? '对焦距离大于超焦距，焦点后的景深为∞' : undefined}
+            />
           </div>
         </section>
 
@@ -846,6 +935,7 @@ export function AppShell() {
         >
           点击切换主页面相机图标
         </button>
+        <div className="home-version-label">当前版本 v{APP_VERSION}</div>
       </section>
     </main>
   )

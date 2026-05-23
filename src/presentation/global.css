@@ -18,11 +18,11 @@
   --shadow-popover: rgba(0, 0, 0, 0.38) 0 16px 36px;
   --page-gutter: clamp(14px, 4vw, 24px);
   --page-max-width: 480px;
-  --font-title: 34px;
-  --font-title-small: 28px;
-  --font-body: 14px;
+  --font-title: 30px;
+  --font-title-small: 24px;
+  --font-body: 12px;
   --font-label: 12px;
-  --font-hero: 17px;
+  --font-hero: 15px;
   --font-badge: 11px;
 }
 
@@ -103,7 +103,7 @@ button {
 .tool-topbar-title {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.2;
   font-weight: 800;
   text-align: center;
@@ -125,14 +125,14 @@ button {
 
 .exposure-result-label {
   color: var(--color-text-secondary);
-  font-size: 24px;
+  font-size: 21px;
   line-height: 1.25;
   font-weight: 500;
 }
 
 .exposure-result-value {
   color: var(--color-text-primary);
-  font-size: 54px;
+  font-size: 48px;
   line-height: 1.05;
   font-weight: 850;
   font-variant-numeric: tabular-nums;
@@ -156,7 +156,7 @@ button {
 
 .exposure-picker-title {
   color: var(--color-text-secondary);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.25;
   font-weight: 500;
   text-align: center;
@@ -192,71 +192,72 @@ button {
 
 .exposure-picker-options {
   min-height: 74px;
-  display: grid;
-  grid-template-columns: 0.8fr minmax(136px, 1fr) 0.8fr;
-  align-items: center;
-  gap: 8px;
-  touch-action: pan-y;
+  position: relative;
+  display: block;
+  touch-action: none;
   user-select: none;
+  overflow: hidden;
+  scrollbar-width: none;
   cursor: grab;
 }
 
-.exposure-picker-options.dragging {
+.exposure-picker-options:active {
   cursor: grabbing;
 }
 
-.exposure-picker-side,
-.exposure-picker-current {
-  min-width: 0;
+.exposure-picker-options::-webkit-scrollbar {
+  display: none;
+}
+
+.exposure-picker-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150px;
+  margin-left: -75px;
+  min-height: 62px;
   border: none;
   background: transparent;
+  color: var(--color-text-disabled);
   display: grid;
-  justify-items: center;
-  gap: 2px;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), color 220ms ease, opacity 220ms ease;
+  opacity: 0;
 }
 
-.exposure-picker-side {
-  min-height: 56px;
-  color: var(--color-text-disabled);
-  pointer-events: none;
+.exposure-picker-item.is-visible {
+  opacity: 0.62;
 }
 
-.exposure-picker-side span {
+.exposure-picker-item span {
   max-width: 100%;
   overflow-wrap: anywhere;
-  font-size: 22px;
-  line-height: 1.1;
+  font-size: 18px;
+  line-height: 1.08;
   font-weight: 800;
 }
 
-.exposure-picker-side small {
+.exposure-picker-item small {
   color: var(--color-text-disabled-subtle);
   font-size: 11px;
   line-height: 1;
 }
 
-.exposure-picker-current {
-  color: var(--color-text-primary);
-}
-
-.exposure-picker-current span {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  font-size: 36px;
-  line-height: 1.05;
-  font-weight: 850;
-}
-
-.exposure-picker-current small {
-  color: var(--color-text-muted);
-  font-size: 12px;
-  line-height: 1;
-}
-
-.switch-inline.dragging .exposure-picker-current {
+.exposure-picker-item.is-selected {
   color: var(--color-accent-primary);
+  opacity: 1;
+}
+
+.exposure-picker-item.is-selected span {
+  font-size: 26px;
+}
+
+.exposure-picker-item.is-selected small {
+  color: var(--color-text-muted);
 }
 
 .dof-control-panel {
@@ -275,7 +276,7 @@ button {
 
 .dof-field span {
   color: var(--color-text-secondary);
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.35;
   font-weight: 650;
 }
@@ -322,7 +323,7 @@ button {
   display: grid;
   justify-items: center;
   gap: 4px;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.42;
   font-weight: 750;
   text-align: center;
@@ -346,7 +347,7 @@ button {
   border: none;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -381,10 +382,16 @@ button {
 
 .dof-metric-card strong {
   color: var(--color-text-primary);
-  font-size: 24px;
+  font-size: 21px;
   line-height: 1.1;
   font-weight: 850;
   font-variant-numeric: tabular-nums;
+}
+
+.dof-metric-note {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .dof-dialog-backdrop {
@@ -411,7 +418,7 @@ button {
 .dof-dialog h2 {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.35;
 }
 
@@ -419,7 +426,7 @@ button {
   display: grid;
   gap: 8px;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .dof-dialog input {
@@ -518,6 +525,14 @@ button {
 
 .home-camera-customize-link:active {
   color: rgba(255, 255, 255, 0.72);
+}
+
+.home-version-label {
+  margin-top: -8px;
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .home-hero-compact {
@@ -639,12 +654,12 @@ button {
 }
 
 .home-primary-action-label {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .home-primary-action-cta {
-  font-size: 30px;
+  font-size: 28px;
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -680,7 +695,7 @@ button {
   padding: 0;
   display: grid;
   place-items: center;
-  font-size: 28px;
+  font-size: 27px;
   line-height: 1;
   font-weight: 500;
   cursor: pointer;
@@ -728,7 +743,7 @@ button {
 }
 
 .empty-zone {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.5;
   text-align: center;
   padding: 18px;
@@ -765,7 +780,7 @@ button {
 }
 
 .home-feature-name {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.25;
   font-weight: 700;
 }
@@ -774,7 +789,7 @@ button {
   min-width: 32px;
   text-align: right;
   color: var(--color-text-muted);
-  font-size: 22px;
+  font-size: 21px;
   line-height: 1;
   font-weight: 500;
 }
@@ -798,7 +813,7 @@ button {
 .camera-icon-title {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.2;
   font-weight: 800;
   text-align: center;
@@ -813,7 +828,7 @@ button {
   color: var(--color-text-primary);
   display: grid;
   place-items: center;
-  font-size: 28px;
+  font-size: 27px;
   line-height: 1;
   cursor: pointer;
 }
@@ -855,7 +870,7 @@ button {
 
 .camera-icon-preview-name {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
   text-align: center;
 }
@@ -906,7 +921,7 @@ button {
 
 .home-focus-title {
   margin: 12px 0 0;
-  font-size: 24px;
+  font-size: 23px;
   line-height: 1.2;
 }
 
@@ -940,7 +955,7 @@ button {
 
 .home-focus-chip strong {
   color: var(--color-text-primary);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 @media (max-width: 380px) {
@@ -982,11 +997,11 @@ button {
   }
 
   .exposure-result-label {
-    font-size: 21px;
+    font-size: 19px;
   }
 
   .exposure-result-value {
-    font-size: 44px;
+    font-size: 40px;
   }
 
   .exposure-picker-stack {
@@ -994,20 +1009,24 @@ button {
   }
 
   .exposure-picker-title {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .exposure-picker-options {
     min-height: 64px;
-    grid-template-columns: 0.76fr minmax(124px, 1fr) 0.76fr;
   }
 
-  .exposure-picker-side span {
-    font-size: 19px;
+  .exposure-picker-item {
+    width: 140px;
+    margin-left: -70px;
   }
 
-  .exposure-picker-current span {
-    font-size: 30px;
+  .exposure-picker-item span {
+    font-size: 16px;
+  }
+
+  .exposure-picker-item.is-selected span {
+    font-size: 23px;
   }
 
   .dof-field {
@@ -1020,11 +1039,11 @@ button {
   }
 
   .dof-metric-card strong {
-    font-size: 21px;
+    font-size: 19px;
   }
 
   .dof-result-summary {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .home-shell {
@@ -1076,7 +1095,7 @@ button {
   }
 
   .home-primary-action-cta {
-    font-size: 26px;
+    font-size: 25px;
   }
 
   .home-focus-chip {

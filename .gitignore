@@ -6,3 +6,23 @@ coverage/
 *.log
 .DS_Store
 .vscode/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+*.local
+local.properties
+
+# Android / Capacitor packaging output and local config
+android/
+capacitor.config.ts
+.gradle/
+build/
+*.apk
+*.aab
+*.apks
+*.keystore
+*.jks
+key.properties
+google-services.json
